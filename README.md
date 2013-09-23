@@ -3,6 +3,7 @@
 pygpmanager is a simple python script to manager custom-crafted XML encrypted password file.
 It reads, parses and writes an XML file with the following structure:
 
+```
 <accounts>
 	<account name="test01">
 		<username>user01</username>
@@ -11,7 +12,7 @@ It reads, parses and writes an XML file with the following structure:
 		<extra>additional notes</extra>
 	</account>
 </accounts>
-
+```
 then it encrypts it with GnuPG.
 
 ## REQUIREMENTS
@@ -24,6 +25,7 @@ ElementTre - pip install elementtree
 If you don't have pip installed...install it NAO! :)
 
 ## USAGE
+```
 $ python pygpmanager.py 
 Usage: pygpmanager.py <file> <command> [param]
 Commands available:
@@ -43,6 +45,6 @@ $ python pygpmanager.py passfile list
 [*] Username: usernametest
 [*] Password: mypassword
 [*] URL: http://site.to.login
-
+```
 ## CONTACT
 anathema@anche.no
