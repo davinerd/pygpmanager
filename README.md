@@ -1,4 +1,4 @@
-** PYGPMANAGER: PYthon Gpg Password MANAGER
+## PYGPMANAGER: PYthon Gpg Password MANAGER
 
 pygpmanager is a simple python script to manager custom-crafted XML encrypted password file.
 It reads, parses and writes an XML file with the following structure:
@@ -14,14 +14,16 @@ It reads, parses and writes an XML file with the following structure:
 
 then it encrypts it with GnuPG.
 
-** REQUIREMENTS
+## REQUIREMENTS
 Python - use your packet manager to install it or compile from source
+
 GnuPG - pip install python-gnupg
+
 ElementTre - pip install elementtree
 
 If you don't have pip installed...install it NAO! :)
 
-** USAGE
+## USAGE
 $ python pygpmanager.py 
 Usage: pygpmanager.py <file> <command> [param]
 Commands available:
@@ -42,3 +44,5 @@ $ python pygpmanager.py passfile list
 [*] Password: mypassword
 [*] URL: http://site.to.login
 
+## CONTACT
+anathema@anche.no
