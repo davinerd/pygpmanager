@@ -1,19 +1,47 @@
 #!/usr/bin/python
-import xml.etree.ElementTree as ET
 import sys
 import re
-import gnupg
 import getpass
 from os.path import expanduser
+try:
+	import xml.etree.ElementTree as ET
+except ImportError:
+	print "[x] ERROR: Cannot find ElementTree. Please install it"
+	exit()
+try:
+	import gnupg
+except ImportError:
+	print "[x] ERROR: Cannot find python-gnupg. Please install it"
+	exit()
+
+USAGE = '''
+Usage: {0} <file> <command> [param]
+Commands available:
+list:		list all available account by name
+search <what>:	search <what> account name
+add <what>:	add <what> account name
+del <what>:	delete <what> account name
+dump:		dump file content in plain text
+'''
+
+INIT_GPG = ""
+CRYPTFILE = sys.argv[1]
+COMMAND = sys.argv[2]
+# get user home directory in which .gnupg resides
+HOMEDIR = expanduser("~") + "/.gnupg"
+# change this to False to disable GPG agent feature
+USEAGENT=True
+# specify the email address key to encrypt CRYPTFILE
+EMAIL = ""
 
 def warn_print(s):
-	print "[!] WARNINIG: "+s
+	print "[!] WARNINIG: {0}".format(s)
 
 def error_print(s):
-	print "[x] ERROR: "+s
+	print "[x] ERROR: {0}".format(s)
 
 def fancy_print(s):
-	print "[*] "+s
+	print "[*] {0}".format(s)
 
 def account_print(ac):
 	user = ""
@@ -29,24 +57,15 @@ def account_print(ac):
 	if ac.find('extra') is not None:
 		extra = ac.find('extra').text
 
-	fancy_print("Account name: "+name)
+	fancy_print("Account name: {0}".format(name))
 	if user:
-		fancy_print("Username: "+user)
-	fancy_print("Password: "+passwd)
+		fancy_print("Username: {0}".format(user))
+	fancy_print("Password: {0}".format(passwd))
 	if url:
-		fancy_print("URL: "+url)
+		fancy_print("URL: {0}".format(url))
 	if extra:
-		fancy_print("Extra: "+extra)
+		fancy_print("Extra: {0}".format(extra))
 	print
-
-def usage():
-	print "Usage:", sys.argv[0], "<file> <command> [param]"
-	print "Commands available:"
-	print "list:\t\tlist all available account by name"
-	print "search <what>:\tsearch <what> account name"
-	print "add <what>:\tadd <what> account name"
-	print "del <what>:\tdelete <what> account name" 
-	print "dump:\t\tdump file content in plain text"
 
 def init_gpg():
 	global INIT_GPG
@@ -101,7 +120,7 @@ def  extract_email(d):
 
 def write_enc_file(root):
 	global EMAIL
-	em = raw_input("Which key to you want to use ["+EMAIL+"]: ")
+	em = raw_input("Which key to you want to use [{0}]: ".format(EMAIL))
 	if len(em) > 0 and em is not EMAIL:
 		EMAIL = em
 
@@ -195,8 +214,6 @@ def add_account(a):
 		root = tree.getroot()
 
 	root.append(acc)
-	# try to force clearing plain text passwords in memory
-	d_data = ""
 	return write_enc_file(root)
 
 def del_account(a):
@@ -205,24 +222,14 @@ def del_account(a):
 		print d_data.stderr
 		return False
 	new_data = destroy_account(d_data.data, a)
-	d_data = ""
 	if new_data is False:
 		return False
 	return write_enc_file(new_data)
 
 if len(sys.argv) < 3:
-	usage()
+	print USAGE.format(sys.argv[0])
 	exit()
 
-INIT_GPG = ""
-CRYPTFILE = sys.argv[1]
-COMMAND = sys.argv[2]
-# get user home directory in which .gnupg resides
-HOMEDIR = expanduser("~") + "/.gnupg"
-# change this to False to disable GPG agent feature
-USEAGENT=True
-# specify the email address key to encrypt CRYPTFILE
-EMAIL = ""
 
 if COMMAND == "list":
 	d_data = init_gpg()
@@ -232,7 +239,7 @@ if COMMAND == "list":
 	list_accounts(d_data.data)
 elif COMMAND == "search":
 	if len(sys.argv) < 4:
-		usage
+		print USAGE.format(sys.argv[0])
 		error_print("Type a search string!")
 		exit()
 	s_key = sys.argv[3]
@@ -241,7 +248,7 @@ elif COMMAND == "search":
 	exit()
 elif COMMAND == "add":
 	if len(sys.argv) < 4:
-		usage
+		print USAGE.format(sys.argv[0])
 		error_print("Specify an account name!")
 		exit()
 	a_name = sys.argv[3]
@@ -252,7 +259,7 @@ elif COMMAND == "add":
 	exit()
 elif COMMAND == "del":
 	if len(sys.argv) < 4:
-		usage
+		print USAGE.format(sys.argv[0])
 		error_print("Specify an account name!")
 		exit()
 	d_name = sys.argv[3]
@@ -265,6 +272,6 @@ elif COMMAND == "dump":
 	dump_content()
 	exit()
 else:
-	usage()
+	print USAGE.format(sys.argv[0])
 	error_print("Command not found!")
 	exit()
