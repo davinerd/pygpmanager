@@ -24,6 +24,10 @@ del <what>:	delete <what> account name
 dump:		dump file content in plain text
 '''
 
+if len(sys.argv) < 3:
+	print USAGE.format(sys.argv[0])
+	exit()
+
 INIT_GPG = ""
 CRYPTFILE = sys.argv[1]
 COMMAND = sys.argv[2]
@@ -226,9 +230,6 @@ def del_account(a):
 		return False
 	return write_enc_file(new_data)
 
-if len(sys.argv) < 3:
-	print USAGE.format(sys.argv[0])
-	exit()
 
 
 if COMMAND == "list":
