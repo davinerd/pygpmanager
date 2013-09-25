@@ -47,29 +47,30 @@ def error_print(s):
 def fancy_print(s):
 	print "[*] {0}".format(s)
 
-def account_print(ac):
+def account_print(ac_l):
 	user = ""
 	passwd = ""
 	url = ""
 	extra = ""
-	name = ac.get('name')
-	if ac.find('username') is not None:
-		user = ac.find('username').text
-	passwd = ac.find('password').text
-	if ac.find('url') is not None:
-		url = ac.find('url').text
-	if ac.find('extra') is not None:
-		extra = ac.find('extra').text
+	for ac in ac_l:
+		name = ac.get('name')
+		if ac.find('username') is not None:
+			user = ac.find('username').text
+		passwd = ac.find('password').text
+		if ac.find('url') is not None:
+			url = ac.find('url').text
+		if ac.find('extra') is not None:
+			extra = ac.find('extra').text
 
-	fancy_print("Account name: {0}".format(name))
-	if user:
-		fancy_print("Username: {0}".format(user))
-	fancy_print("Password: {0}".format(passwd))
-	if url:
-		fancy_print("URL: {0}".format(url))
-	if extra:
-		fancy_print("Extra: {0}".format(extra))
-	print
+		fancy_print("Account name: {0}".format(name))
+		if user:
+			fancy_print("Username: {0}".format(user))
+		fancy_print("Password: {0}".format(passwd))
+		if url:
+			fancy_print("URL: {0}".format(url))
+		if extra:
+			fancy_print("Extra: {0}".format(extra))
+		print
 
 def init_gpg():
 	global INIT_GPG
@@ -182,10 +183,13 @@ def create_account(a):
 	return new_account
 
 def find_account(d,s):
+	ac_list = []
 	for ac in get_accounts(d):
 		if re.search(s, ac.get('name')): 
-			return ac
-	return False
+			ac_list.append(ac)
+	if len(ac_list) == 0:
+		return False
+	return ac_list
 
 def search_account(s):
 	d_data = init_gpg()
@@ -196,8 +200,9 @@ def search_account(s):
 	if d_data.ok is False:
 		print d_data.stderr
 		return False
+	# now 'ac' is typeof list
 	ac = find_account(d_data.data,s)
-	if ac:
+	if ac is not False:
 		account_print(ac)
 	else:
 		return False
