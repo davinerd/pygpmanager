@@ -24,19 +24,16 @@ del <what>:	delete <what> account name
 dump:		dump file content in plain text
 '''
 
-if len(sys.argv) < 3:
-	print USAGE.format(sys.argv[0])
-	exit()
-
 INIT_GPG = ""
-CRYPTFILE = sys.argv[1]
-COMMAND = sys.argv[2]
+CRYPTFILE = ""
+COMMAND = ""
 # get user home directory in which .gnupg resides
 HOMEDIR = expanduser("~") + "/.gnupg"
 # change this to False to disable GPG agent feature
 USEAGENT=True
 # specify the email address key to encrypt CRYPTFILE
 EMAIL = ""
+
 
 def warn_print(s):
 	print "[!] WARNINIG: {0}".format(s)
@@ -56,7 +53,8 @@ def account_print(ac_l):
 		name = ac.get('name')
 		if ac.find('username') is not None:
 			user = ac.find('username').text
-		passwd = ac.find('password').text
+		if ac.find('password') is not None:
+			passwd = ac.find('password').text
 		if ac.find('url') is not None:
 			url = ac.find('url').text
 		if ac.find('extra') is not None:
@@ -65,7 +63,8 @@ def account_print(ac_l):
 		fancy_print("Account name: {0}".format(name))
 		if user:
 			fancy_print("Username: {0}".format(user))
-		fancy_print("Password: {0}".format(passwd))
+		if passwd:
+			fancy_print("Password: {0}".format(passwd))
 		if url:
 			fancy_print("URL: {0}".format(url))
 		if extra:
@@ -156,6 +155,10 @@ def destroy_account(d, s):
 
 def create_account(a):
 	new_account = ET.Element("account", {'name': a })
+	user = ""
+	passwd = ""
+	url = ""
+	extra = ""
 	text = raw_input("Enter an username: ")
 	if not text:
 		warn_print("You didn't insert any username")
@@ -180,6 +183,8 @@ def create_account(a):
 		extra = ET.SubElement(new_account, "extra")
 		extra.text = text
 
+	if not user and not passwd and not url and not extra:
+		return False
 	return new_account
 
 def find_account(d,s):
@@ -210,6 +215,9 @@ def search_account(s):
 def add_account(a):
 	# first, create new node
 	acc = create_account(a)
+	if acc is False:
+		error_print("Cannot create empty account!")
+		return False;
 	# second, decrypt the old file
 	d_data = init_gpg()
 	if d_data is False:
@@ -236,6 +244,12 @@ def del_account(a):
 	return write_enc_file(new_data)
 
 
+if len(sys.argv) < 3:
+	print USAGE.format(sys.argv[0])
+	exit()
+
+CRYPTFILE = sys.argv[1]
+COMMAND = sys.argv[2]
 
 if COMMAND == "list":
 	d_data = init_gpg()
