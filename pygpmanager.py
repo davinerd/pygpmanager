@@ -253,6 +253,9 @@ COMMAND = sys.argv[2]
 
 if COMMAND == "list":
 	d_data = init_gpg()
+	if d_data is False:
+		error_print("File doesn't exist!")
+		exit()
 	if d_data.ok is False:
 		print d_data.stderr
 		exit()
