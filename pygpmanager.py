@@ -91,36 +91,6 @@ def init_gpg():
 	EMAIL = extract_email(dec_data.stderr)
 	return dec_data
 
-def mod_ac(a):
-	new_account = ET.Element("account", {'name': a.get('name') })
-	user = a.get('username')
-	passwd = a.get('password')
-	url = a.get('url')
-	extra = a.get('extra')
-	text = raw_input("Enter an username [{0}]: ".format(user))
-	if text is not None:
-		user = ET.SubElement(new_account, "username")
-		user.text = text
-
-	text = raw_input("Enter a password or passhprase [{0}]: ".format(passwd))
-	if text is not None:
-		passwd = ET.SubElement(new_account, "password")
-		passwd.text = text
-
-	text = raw_input("Enter an URL associated to login [{0}]: ".format(url))
-	if text is not None:
-		url = ET.SubElement(new_account,"url")
-		url.text = text
-
-	text = raw_input("Enter extra text [{0}]: ".format(extra))
-	if text is not None:
-		extra = ET.SubElement(new_account, "extra")
-		extra.text = text
-
-	if user is None and passwd is None and url is None and extra is None:
-		return False
-	return new_account
-
 def dump_content():
 	d_data = init_gpg()
 	if d_data is False:
@@ -188,7 +158,7 @@ def modify_account(d, s):
 	root = tree.getroot()
 	for ac in root.findall('account'):
 		if re.search(s, ac.get('name')):
-			new = mod_ac(ac)
+			new = create_account(ac.get('name'), ac)
 			if new is not False:
 				root.remove(ac)
 				root.append(new)
@@ -197,37 +167,47 @@ def modify_account(d, s):
 				return False
 	return False
 
-def create_account(a):
+def create_account(a, d):
+	user = ""
+	passwd = ""
+	url = ""
+	extra = ""
 	new_account = ET.Element("account", {'name': a })
-	user = False
-	passwd = False
-	url = False
-	extra = False
-	text = raw_input("Enter an username: ")
+	if d is not None:
+		if d.find('username') is not None:
+			user = d.find('username').text
+		if d.find('password') is not None:
+			passwd = d.find('password').text
+		if d.find('url') is not None:
+			url = d.find('url').text
+		if d.find('extra') is not None:
+			extra = d.find('extra').text
+		
+	text = raw_input("Enter an username [{0}]: ".format(user))
 	if not text:
 		warn_print("You didn't insert any username")
 	else:
 		user = ET.SubElement(new_account, "username")
 		user.text = text
 
-	text = raw_input("Enter a password or passhprase: ")
+	text = raw_input("Enter a password or passhprase [{0}]: ".format(passwd))
 	if not text:
 		warn_print("You didn't insert any password")
 	else:
 		passwd = ET.SubElement(new_account, "password")
 		passwd.text = text
-	text = raw_input("Enter an URL associated to login: ")
+	text = raw_input("Enter an URL associated to login [{0}]: ".format(url))
 	if not text:
 		warn_print("You didn't insert any URL")
 	else:
 		url = ET.SubElement(new_account,"url")
 		url.text = text
-	text = raw_input("Enter extra text: ")
+	text = raw_input("Enter extra text [{0}]: ".format(extra))
 	if text:
 		extra = ET.SubElement(new_account, "extra")
 		extra.text = text
-
-	if user is False and passwd is False and url is False and extra is False:
+	
+	if not user and not passwd and not url and not extra:
 		return False
 	return new_account
 
@@ -259,7 +239,7 @@ def search_account(s):
 
 def add_account(a):
 	# first, create new node
-	acc = create_account(a)
+	acc = create_account(a, None)
 	if acc is False:
 		error_print("Cannot create empty account!")
 		return False;

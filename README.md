@@ -33,6 +33,7 @@ list:		list all available account by name
 search <what>:	search <what> account name
 add <what>:	add <what> account name
 del <what>:	delete <what> account name
+mod <what>:	modify <what> account name
 dump:		dump file content in plain text
 
 $ python pygpmanager.py passfile list
