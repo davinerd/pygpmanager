@@ -21,6 +21,7 @@ list:		list all available account by name
 search <what>:	search <what> account name
 add <what>:	add <what> account name
 del <what>:	delete <what> account name
+mod <what>:	modify <what> account name
 dump:		dump file content in plain text
 '''
 
@@ -90,6 +91,36 @@ def init_gpg():
 	EMAIL = extract_email(dec_data.stderr)
 	return dec_data
 
+def mod_ac(a):
+	new_account = ET.Element("account", {'name': a.get('name') })
+	user = a.get('username')
+	passwd = a.get('password')
+	url = a.get('url')
+	extra = a.get('extra')
+	text = raw_input("Enter an username [{0}]: ".format(user))
+	if text is not None:
+		user = ET.SubElement(new_account, "username")
+		user.text = text
+
+	text = raw_input("Enter a password or passhprase [{0}]: ".format(passwd))
+	if text is not None:
+		passwd = ET.SubElement(new_account, "password")
+		passwd.text = text
+
+	text = raw_input("Enter an URL associated to login [{0}]: ".format(url))
+	if text is not None:
+		url = ET.SubElement(new_account,"url")
+		url.text = text
+
+	text = raw_input("Enter extra text [{0}]: ".format(extra))
+	if text is not None:
+		extra = ET.SubElement(new_account, "extra")
+		extra.text = text
+
+	if user is None and passwd is None and url is None and extra is None:
+		return False
+	return new_account
+
 def dump_content():
 	d_data = init_gpg()
 	if d_data is False:
@@ -152,12 +183,26 @@ def destroy_account(d, s):
 			return root
 	return False
 
+def modify_account(d, s):
+	tree = ET.ElementTree(ET.fromstring(d))
+	root = tree.getroot()
+	for ac in root.findall('account'):
+		if re.search(s, ac.get('name')):
+			new = mod_ac(ac)
+			if new is not False:
+				root.remove(ac)
+				root.append(new)
+				return root
+			else:
+				return False
+	return False
+
 def create_account(a):
 	new_account = ET.Element("account", {'name': a })
-	user = ""
-	passwd = ""
-	url = ""
-	extra = ""
+	user = False
+	passwd = False
+	url = False
+	extra = False
 	text = raw_input("Enter an username: ")
 	if not text:
 		warn_print("You didn't insert any username")
@@ -182,7 +227,7 @@ def create_account(a):
 		extra = ET.SubElement(new_account, "extra")
 		extra.text = text
 
-	if not user and not passwd and not url and not extra:
+	if user is False and passwd is False and url is False and extra is False:
 		return False
 	return new_account
 
@@ -235,14 +280,30 @@ def add_account(a):
 
 def del_account(a):
 	d_data = init_gpg()
+	if d_data is False:
+		error_print("File doesn't exist!")
+		return False
 	if d_data.ok is False:
 		print d_data.stderr
 		return False
 	new_data = destroy_account(d_data.data, a)
 	if new_data is False:
+		error_print("Account not found!")
 		return False
 	return write_enc_file(new_data)
 
+def mod_account(a):
+	d_data = init_gpg()
+	if d_data is False:
+		error_print("File doesn't exist!")
+		return False
+	if d_data.ok is False:
+		print d_data.stderr
+		return False
+	new_d = modify_account(d_data.data, a)
+	if new_d is False:
+		return False
+	return write_enc_file(new_d)
 
 if len(sys.argv) < 3:
 	print USAGE.format(sys.argv[0])
@@ -290,6 +351,17 @@ elif COMMAND == "del":
 		fancy_print("Account deleted!")
 	else:
 		error_print("Account not deleted!")
+	exit()
+elif COMMAND == "mod":
+	if len(sys.argv) < 4:
+		print USAGE.format(sys.argv[0])
+		error_print("Specify an account name!")
+		exit()
+	d_name = sys.argv[3]
+	if mod_account(d_name) is True:
+		fancy_print("Account successfully modified!")
+	else:
+		error_print("Account not modified!")
 	exit()
 elif COMMAND == "dump":
 	dump_content()
