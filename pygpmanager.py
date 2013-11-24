@@ -207,7 +207,7 @@ def create_account(a, d):
 		extra = ET.SubElement(new_account, "extra")
 		extra.text = text
 	
-	if not user and not passwd and not url and not extra:
+	if len(user) > 0 and len(passwd) > 0 and len(url) > 0 and len(extra) > 0 :
 		return False
 	return new_account
 
@@ -237,8 +237,14 @@ def search_account(s):
 	else:
 		return False
 
+	return True
+
 def add_account(a):
 	# first, create new node
+	if search_account(a) is True:
+		warn_print("Account name already exits!")
+		return False
+
 	acc = create_account(a, None)
 	if acc is False:
 		error_print("Cannot create empty account!")
